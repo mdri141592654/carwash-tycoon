@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Autowaschpark Tycoon</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+        #log { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; max-height: 300px; overflow-y: auto; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Autowaschpark Tycoon</h1>
+    <div id="stats"></div>
+    <button onclick="nextWeek()">Nächste Woche starten</button>
+    <button onclick="buyUpgrade()">Upgrade kaufen (500€)</button>
+    <div id="log"></div>
+
+    <script>
+        let geld = 2000;
+        let reinigungsmittel = 100;
+        let wasserKosten = 1;
+        let energieKosten = 1;
+        let reinigungsmittelVerbrauch = 1;
+        let einnahmeProKunde = 20;
+        let kundenBasis = 10;
+        let woche = 1;
+        let upgradeGekauft = false;
+
+        const miniEvents = [
+            { text: "Festival in der Nähe! +50% Kunden diese Woche", effect: () => kundenBoost = 1.5 },
+            { text: "Wasserkosten steigen um 50%", effect: () => wasserKosten *= 1.5 },
+            { text: "Energiepreise sinken um 30%", effect: () => energieKosten *= 0.7 },
+            { text: "Regen angesagt... -30% Kunden diese Woche", effect: () => kundenBoost = 0.7 }
+        ];
+
+        function updateStats() {
+            document.getElementById("stats").innerText =
+                `Woche: ${woche}\nGeld: ${geld.toFixed(2)}€\nReinigungsmittel: ${reinigungskaufStand()}\nUpgrade: ${upgradeGekauft ? "✔️" : "❌"}`;
+        }
+
+        function reinigungskaufStand() {
+            return `${reinigungsmittel} Einheiten`;
+        }
+
+        function nextWeek() {
+            let log = `--- Woche ${woche} ---\n`;
+            let kundenBoost = 1;
+            let event = null;
+
+            if (Math.random() < 0.5) {
+                event = miniEvents[Math.floor(Math.random() * miniEvents.length)];
+                event.effect();
+                log += `Mini-Event: ${event.text}\n`;
+            }
+
+            let kunden = Math.floor(kundenBasis * (upgradeGekauft ? 1.2 : 1) * kundenBoost);
+            let maxWaschbar = Math.min(kunden, Math.floor(reinigungsmittel / reinigungsmittelVerbrauch));
+            let einnahmen = maxWaschbar * einnahmeProKunde;
+            let kosten = maxWaschbar * (wasserKosten + energieKosten + reinigungsmittelVerbrauch);
+            reinigungsmittel -= maxWaschbar * reinigungsmittelVerbrauch;
+            geld += einnahmen - kosten;
+
+            log += `Kunden: ${kunden}\nBedient: ${maxWaschbar}\nEinnahmen: ${einnahmen.toFixed(2)}€\nKosten: ${kosten.toFixed(2)}€\nGewinn: ${(einnahmen - kosten).toFixed(2)}€`;
+
+            woche++;
+            updateStats();
+            document.getElementById("log").innerText = log + "\n\n" + document.getElementById("log").innerText;
+        }
+
+        function buyUpgrade() {
+            if (!upgradeGekauft && geld >= 500) {
+                geld -= 500;
+                upgradeGekauft = true;
+                updateStats();
+                document.getElementById("log").innerText = "Upgrade gekauft! Deine Anlage zieht nun mehr Kunden an.\n\n" + document.getElementById("log").innerText;
+            } else {
+                document.getElementById("log").innerText = "Upgrade nicht möglich. Entweder schon gekauft oder zu wenig Geld.\n\n" + document.getElementById("log").innerText;
+            }
+        }
+
+        updateStats();
+    </script>
+</body>
+</html>
